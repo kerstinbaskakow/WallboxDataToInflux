@@ -31,3 +31,18 @@ class Config:
                          101:'HW_config_min_current_A'               
                          
                          }
+
+
+    MEASUREMENT_ITEMS_READHOLDING = {257:'Watchdog_Timeout_ms',
+                         259:'Remote_Lock_State',
+                         261:'Max_Current_Command_A',
+                         262:'Failsafe_Current_A'
+                         }
+
+    
+    PV_POWER_INFLUX = "modbus.0.holdingRegisters.40067_PV_Leistung" 
+    PV_POWER_INFLUX_QUERY = 'SELECT * FROM "modbus.0.holdingRegisters.40067_PV_Leistung" ORDER BY time DESC LIMIT 1'
+    BATTERY_POWER_INFLUX = "modbus.0.holdingRegisters.40069_Batterie_Leistung"
+    BATTERY_POWER_INFLUX_QUERY = 'SELECT * FROM "modbus.0.holdingRegisters.40069_Batterie_Leistung" ORDER BY time DESC LIMIT 1'
+    HOME_POWER_INFLUX = "modbus.0.holdingRegisters.40071_Hausverbrauch_Leistung"
+    HOME_POWER_INFLUX_QUERY = 'SELECT * FROM "modbus.0.holdingRegisters.40071_Hausverbrauch_Leistung" ORDER BY time DESC LIMIT 1'

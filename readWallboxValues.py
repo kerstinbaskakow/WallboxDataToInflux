@@ -6,7 +6,7 @@ Created on Sun Apr 25 15:02:12 2021
 @author: kerstin
 """
 
-def main():
+def readWallboxValues():
     from influxdb import InfluxDBClient
     from pyModbusTCP.client import ModbusClient
     from config import Config
@@ -34,6 +34,19 @@ def main():
                 influxclient.write_points(body, database=Config.DATABASE, time_precision='s', batch_size=10000, protocol='json')
             except:
                 pass
+
+        for key,item in Config.MEASUREMENT_ITEMS_READHOLDING.items():
+            try:
+                regs = modbusclientWallbox.read_holding_registers(key)[0]
+                print(item," ", regs)
+                body = [{
+                    "measurement": item,
+                    "fields":
+                        {"value": regs}
+                    }]
+                influxclient.write_points(body, database=Config.DATABASE, time_precision='s', batch_size=10000, protocol='json')
+            except:
+                pass
         modbusclientWallbox.close()
 
 
@@ -43,4 +56,4 @@ def main():
         print("interrupted by keyboard")  
 
 if __name__ == "__main__":
-    main()
+    readWallboxValues()
