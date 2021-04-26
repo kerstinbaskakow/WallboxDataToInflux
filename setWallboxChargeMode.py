@@ -38,7 +38,10 @@ def setWallboxChargeMode():
     writeToInflux(modeSelector,"button")
     #1 means "SofortLaden" mit max. Leistung
     if modeSelector == 1:
-        maxCurTarVal = 16
+        
+        availChargeCurrent_A = 16
+        availChargePower_W = availChargeCurrent_A*3*230
+        maxCurTarVal = availChargeCurrent_A
     #2 means pv surplus
     elif modeSelector == 2:
         batteryPower_W = queryData(Config.BATTERY_POWER_INFLUX_QUERY,Config.BATTERY_POWER_INFLUX)
@@ -54,12 +57,14 @@ def setWallboxChargeMode():
             maxCurTarVal = availChargeCurrent_A
         else:
             maxCurTarVal = 16
-        writeToInflux(availChargePower_W,"calcAvailChargePower_W")
-        writeToInflux(availChargeCurrent_A,"calcAvailChargeCurrent_A")
+
     else:
-        maxCurTarVal = 12
+        availChargePower_W = 0
+        availChargeCurrent_A = 0
+        maxCurTarVal = availChargeCurrent_A
         
-        
+    writeToInflux(availChargePower_W,"calcAvailChargePower_W")
+    writeToInflux(availChargeCurrent_A,"calcAvailChargeCurrent_A")
     #initialize modbus client
     modbusclientWallbox=ModbusClient(host=Config.MOD_HOST,port=Config.MOD_PORT)
     try:
