@@ -75,6 +75,9 @@ def main():
     mode = queryData('select value from button ORDER BY time desc limit 1',"button",influxclient,Config)
     writeToInflux(mode,"button",influxclient,Config)
     maxCurTarVal,availChargePower_W,availChargeCurrent_A = calcCurrentTargetValue(mode,influxclient,Config)
+
+    writeToInflux(availChargePower_W,"calcAvailChargePower_W",influxclient,Config)
+    writeToInflux(availChargeCurrent_A,"calcAvailChargeCurrent_A",influxclient,Config)
     influxclient.close()
     
     #initialize modbus client
