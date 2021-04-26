@@ -17,7 +17,7 @@ def writeToInflux(value,nameOfValue,influxclient,Config):
     "fields":
         {"value": value}
     }]
-    influxclient.write_points(body, database=Config.DATABASE, time_precision='s', batch_size=10000, protocol='json')
+    return influxclient.write_points(body, database=Config.DATABASE, time_precision='s', batch_size=10000, protocol='json')
     
 def calcCurrentTargetValue(modeSelector,influxclient,Config):
     #1 means "SofortLaden" mit max. Leistung
@@ -75,8 +75,11 @@ def main():
     mode = queryData('select value from button ORDER BY time desc limit 1',"button",influxclient,Config)
     writeToInflux(mode,"button",influxclient,Config)
     maxCurTarVal,availChargePower_W,availChargeCurrent_A = calcCurrentTargetValue(mode,influxclient,Config)
-    writeToInflux(availChargePower_W,"calcAvailChargePower_W",influxclient,Config)
-    writeToInflux(availChargeCurrent_A,"calcAvailChargeCurrent_A",influxclient,Config)
+    print("maxCurTarVal",maxCurTarVal,type(maxCurTarVal))
+    print("availChargePower_W",availChargePower_W,type(availChargePower_W))
+    print("availChargeCurrent_A",availChargeCurrent_A,type(availChargeCurrent_A))
+    print("writing of availChargePower_W successfull? ",writeToInflux(availChargePower_W,"calcAvailChargePower_W",influxclient,Config))
+    print("writing of availChargeCurrent_A successfull? ",writeToInflux(availChargeCurrent_A,"calcAvailChargeCurrent_A",influxclient,Config))
     influxclient.close()
     
     #initialize modbus client
