@@ -6,7 +6,7 @@ Created on Sun Apr 25 15:02:12 2021
 @author: kerstin
 """
 
-def readWallboxValues():
+def readWallboxValuesMain():
     from influxdb import InfluxDBClient
     from pyModbusTCP.client import ModbusClient
     from config import Config
@@ -21,11 +21,12 @@ def readWallboxValues():
     
     try:
         modbusclientWallbox.open()
-        print(modbusclientWallbox.write_single_register(258,4))
+        #print(modbusclientWallbox.write_single_register(258,4))
+        modbusclientWallbox.write_single_register(258,4) #set Stdby controll to "No Stdby"
         for key,item in Config.MEASUREMENT_ITEMS_INPUTREG.items():
             try:
                 regs = modbusclientWallbox.read_input_registers(key)[0]
-                print(item," ", regs)
+                #print(item," ", regs)
                 body = [{
                     "measurement": item,
                     "fields":
@@ -38,7 +39,7 @@ def readWallboxValues():
         for key,item in Config.MEASUREMENT_ITEMS_READHOLDING.items():
             try:
                 regs = modbusclientWallbox.read_holding_registers(key)[0]
-                print(item," ", regs)
+                #print(item," ", regs)
                 body = [{
                     "measurement": item,
                     "fields":
@@ -56,4 +57,4 @@ def readWallboxValues():
         print("interrupted by keyboard")  
 
 if __name__ == "__main__":
-    readWallboxValues()
+    readWallboxValuesMain()

@@ -5,7 +5,6 @@ Created on Sun Apr 25 15:02:12 2021
 
 @author: kerstin
 """
-
 def queryData(query,meas,influxclient,Config):
     rawVal = influxclient.query(query)
     value = list(rawVal.get_points(measurement='{}'.format(meas)))[0]['value']
@@ -60,7 +59,9 @@ def writeCalcCurToCharger(value,Config):
         modbusclientWallbox.close()
     
 
-def main():
+def setWallboxChargeModeMain():
+    
+    import time
     
     from influxdb import InfluxDBClient
     from config import Config
@@ -80,6 +81,7 @@ def main():
     writeToInflux(availChargeCurrent_A,"calcAvailChargeCurrent_A",influxclient,Config)
     influxclient.close()
     
+    print("setWallboxChargeMode Runtime =", time.strftime("%H:%M:%S"))
     #initialize modbus client
     #set charge current via modbus connection
     writeCalcCurToCharger(maxCurTarVal,Config)
@@ -88,4 +90,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    setWallboxChargeModeMain()
