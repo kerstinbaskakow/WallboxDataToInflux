@@ -15,21 +15,29 @@ from config import Config
 #intialize influx client
 influxclient = InfluxDBClient(host=Config.INFLUX_HOST, port=Config.INFLUX_PORT)
 influxclient.switch_database(Config.DATABASE)
+
 body = [{
-    "measurement": Config.BATTERY_POWER_INFLUX,
+    "measurement": Config.CHARGE_POWER_INFLUX,
     "fields":
-        {"value": 3201}
+        {"value": 5000}
     }]
 influxclient.write_points(body, database=Config.DATABASE, time_precision='s', batch_size=10000, protocol='json')
-body2 = [{
-    "measurement": Config.HOME_POWER_INFLUX,
-    "fields":
-        {"value": 684}
-    }]
-influxclient.write_points(body2, database=Config.DATABASE, time_precision='s', batch_size=10000, protocol='json')
-body3 = [{
-    "measurement": Config.PV_POWER_INFLUX,
-    "fields":
-        {"value": 9734}
-    }]
-influxclient.write_points(body3, database=Config.DATABASE, time_precision='s', batch_size=10000, protocol='json')
+#
+#body = [{
+#    "measurement": Config.BATTERY_POWER_INFLUX,
+#    "fields":
+#        {"value": 3201}
+#    }]
+#influxclient.write_points(body, database=Config.DATABASE, time_precision='s', batch_size=10000, protocol='json')
+#body2 = [{
+#    "measurement": Config.HOME_POWER_INFLUX,
+#    "fields":
+#        {"value": 684}
+#    }]
+#influxclient.write_points(body2, database=Config.DATABASE, time_precision='s', batch_size=10000, protocol='json')
+#body3 = [{
+#    "measurement": Config.PV_POWER_INFLUX,
+#    "fields":
+#        {"value": 9734}
+#    }]
+#influxclient.write_points(body3, datbase=Config.DATABASE, time_precision='s', batch_size=10000, protocol='json')

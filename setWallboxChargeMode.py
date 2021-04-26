@@ -34,47 +34,43 @@ def setWallboxChargeMode():
     from pyModbusTCP.client import ModbusClient
     from config import Config
     
+    modeSelector = queryData('select value from button ORDER BY time desc limit 1',"button")
+    writeToInflux(modeSelector,"button")
+    #1 means "SofortLaden" mit max. Leistung
+    if modeSelector == 1:
+        maxCurTarVal = 16
+    #2 means pv surplus
+    elif modeSelector == 2:
+        batteryPower_W = queryData(Config.BATTERY_POWER_INFLUX_QUERY,Config.BATTERY_POWER_INFLUX)
+        homePower_W = queryData(Config.HOME_POWER_INFLUX_QUERY,Config.HOME_POWER_INFLUX)
+        pvPower_W = queryData(Config.PV_POWER_INFLUX_QUERY,Config.PV_POWER_INFLUX)
+        chargePower_W = queryData(Config.CHARGE_POWER_INFLUX_QUERY,Config.CHARGE_POWER_INFLUX)
+        availChargePower_W = (pvPower_W -(homePower_W+batteryPower_W))+chargePower_W
+        availChargeCurrent_A = int(availChargePower_W/(230*3))
+        #6A is minimum charge current, 16 is max
+        if availChargeCurrent_A<6:
+            maxCurTarVal = 0
+        elif availChargeCurrent_A >= 6 and availChargeCurrent_A <=16:
+            maxCurTarVal = availChargeCurrent_A
+        else:
+            maxCurTarVal = 16
+        writeToInflux(availChargePower_W,"calcAvailChargePower_W")
+        writeToInflux(availChargeCurrent_A,"calcAvailChargeCurrent_A")
+    else:
+        maxCurTarVal = 12
+        
+        
     #initialize modbus client
     modbusclientWallbox=ModbusClient(host=Config.MOD_HOST,port=Config.MOD_PORT)
-    
-    print()
-    
     try:
-        
         modbusclientWallbox.open()
-        modeSelector = queryData('select value from button ORDER BY time desc limit 1',"button")
-        if modeSelector == 1:
-            maxCurTarVal = 16
-        #2 means pv surplus
-        elif modeSelector == 2:
-            batteryPower_W = queryData(Config.BATTERY_POWER_INFLUX_QUERY,Config.BATTERY_POWER_INFLUX)
-            homePower_W = queryData(Config.HOME_POWER_INFLUX_QUERY,Config.HOME_POWER_INFLUX)
-            pvPower_W = queryData(Config.PV_POWER_INFLUX_QUERY,Config.PV_POWER_INFLUX)
-            availChargePower_W = pvPower_W -(homePower_W+batteryPower_W)
-            availChargeCurrent_A = int(availChargePower_W/(230*3))
-            #6A is minimum charge current, 16 is max
-            if availChargeCurrent_A<6:
-                maxCurTarVal = 0
-            elif availChargeCurrent_A >= 6 and availChargeCurrent_A <=16:
-                maxCurTarVal = availChargeCurrent_A
-            else:
-                maxCurTarVal = 16
-            print("batteryPower_W ",batteryPower_W)
-            print("homePower_W ",homePower_W)
-            print("pvPower_W ",pvPower_W)
-            print("availChargePower_W ",availChargePower_W)
-            print("availChargeCurrent_A ",availChargeCurrent_A)
-            writeToInflux(availChargePower_W,"calcAvailChargePower_W")
-            writeToInflux(availChargeCurrent_A,"calcAvailChargeCurrent_A")
-        else:
-            maxCurTarVal = 12
         #current has Faktor 10 at read/write to modbus interface
         modbusclientWallbox.write_single_register(261,maxCurTarVal*10)
         modbusclientWallbox.close()
 
-    except KeyboardInterrupt: 
+    except: 
         modbusclientWallbox.close()
-        print("interrupted by keyboard")  
+
 
 if __name__ == "__main__":
     setWallboxChargeMode()
