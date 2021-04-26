@@ -45,7 +45,7 @@ def calcCurrentTargetValue(modeSelector,influxclient,Config):
         availChargePower_W = 0
         availChargeCurrent_A = 0
         maxCurTarVal = availChargeCurrent_A
-    return maxCurTarVal,availChargePower_W,availChargeCurrent_A
+    return int(maxCurTarVal),int(availChargePower_W),int(availChargeCurrent_A)
 
 def writeCalcCurToCharger(value,Config):
     from pyModbusTCP.client import ModbusClient
@@ -75,11 +75,6 @@ def main():
     mode = queryData('select value from button ORDER BY time desc limit 1',"button",influxclient,Config)
     writeToInflux(mode,"button",influxclient,Config)
     maxCurTarVal,availChargePower_W,availChargeCurrent_A = calcCurrentTargetValue(mode,influxclient,Config)
-    print("maxCurTarVal",maxCurTarVal,type(maxCurTarVal))
-    print("availChargePower_W",availChargePower_W,type(availChargePower_W))
-    print("availChargeCurrent_A",availChargeCurrent_A,type(availChargeCurrent_A))
-    print("writing of availChargePower_W successfull? ",writeToInflux(availChargePower_W,"calcAvailChargePower_W",influxclient,Config))
-    print("writing of availChargeCurrent_A successfull? ",writeToInflux(availChargeCurrent_A,"calcAvailChargeCurrent_A",influxclient,Config))
     influxclient.close()
     
     #initialize modbus client
