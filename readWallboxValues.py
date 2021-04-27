@@ -26,7 +26,7 @@ def readWallboxValuesMain():
         for key,item in Config.MEASUREMENT_ITEMS_INPUTREG.items():
             try:
                 regs = modbusclientWallbox.read_input_registers(key)[0]
-                #print(item," ", regs)
+                print(item," ", regs)
                 body = [{
                     "measurement": item,
                     "fields":

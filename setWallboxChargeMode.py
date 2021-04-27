@@ -30,6 +30,8 @@ def calcCurrentTargetValue(modeSelector,influxclient,Config):
         homePower_W = queryData(Config.HOME_POWER_INFLUX_QUERY,Config.HOME_POWER_INFLUX,influxclient,Config)
         pvPower_W = queryData(Config.PV_POWER_INFLUX_QUERY,Config.PV_POWER_INFLUX,influxclient,Config)
         chargePower_W = queryData(Config.CHARGE_POWER_INFLUX_QUERY,Config.CHARGE_POWER_INFLUX,influxclient,Config)
+        if batteryPower_W < 0:
+                batteryPower_W = 0
         availChargePower_W = (pvPower_W -(homePower_W+batteryPower_W))+chargePower_W
         availChargeCurrent_A = int(availChargePower_W/(230*3))
         #6A is minimum charge current, 16 is max
