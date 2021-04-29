@@ -1,22 +1,14 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Apr 29 15:23:10 2021
-
-@author: kerstin
-"""
-from chargeApp import influxclient,modbusclientWallbox
 from chargeApp.config import Config
-
+from chargeApp import influxclient
 
 def queryDataFromInflux(query,meas):
     rawVal = influxclient.query(query)
     value = list(rawVal.get_points(measurement='{}'.format(meas)))[0]['value']
     return value
 
-def writeDataToInflux(value,nameOfValue):
+def writeDataToInflux(value,meas):
     body = [{
-    "measurement": nameOfValue,
+    "measurement": meas,
     "fields":
         {"value": value}
     }]

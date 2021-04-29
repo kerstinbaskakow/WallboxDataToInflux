@@ -7,21 +7,9 @@ Created on Sun Apr 25 15:02:12 2021
 """
 
 from chargeApp.config import Config
-from chargeApp import influxclient,modbusclientWallbox
+from chargeApp.utils import queryDataFromInflux,writeDataToInflux
+from chargeApp import modbusclientWallbox
 
-
-def queryDataFromInflux(query,meas):
-    rawVal = influxclient.query(query)
-    value = list(rawVal.get_points(measurement='{}'.format(meas)))[0]['value']
-    return value
-
-def writeDataToInflux(value,nameOfValue):
-    body = [{
-    "measurement": nameOfValue,
-    "fields":
-        {"value": value}
-    }]
-    return influxclient.write_points(body, database=Config.DATABASE, time_precision='s', batch_size=10000, protocol='json')
     
 def calcCurrentTargetValue(modeSelector):
     #1 means "SofortLaden" mit max. Leistung
@@ -57,7 +45,7 @@ def writeCalcCurToCharger(value):
     try:
         modbusclientWallbox.open()
         #current has Faktor 10 at read/write to modbus interface
-        modbusclientWallbox.write_single_register(261,value*Config.WALLBOX_SETTINGS["CURRENT_SCALE"])
+        modbusclientWallbox.write_single_register(Config.WALLBOX_REGISTER["MAX_CUR_COMMAND"],value*Config.WALLBOX_SETTINGS["CURRENT_SCALE"])
         modbusclientWallbox.close()
 
     except: 

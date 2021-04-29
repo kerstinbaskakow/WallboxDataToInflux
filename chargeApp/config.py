@@ -48,18 +48,27 @@ class Config:
                         "MAX_CHARGE_CURRENT":16,
                         "FAIL_SAFE_CURRENT":6,
                         "CURRENT_SCALE":10,
+                        "NUMBER_OF_PHASES_MAX":3
             }
-    WALLBOX_REGISTER = {"StdByControl":258
+    WALLBOX_REGISTER = {"STDBY_CONTROL":258,
+                        "MAX_CUR_COMMAND":261
             }
-    WALLBOX_REG_STDBYCONTROL={"enable":0,
-                              "disable":4}
+    WALLBOX_REG_STDBYCONTROL={"ENABLE":0,
+                              "DISABLE":4}
     
     
+    
+    CURRENT_INFLUX = "L{}_Current_A"
+#    CURRENT_INFLUX_QUERY = 'SELECT * FROM {} ORDER BY time DESC LIMIT 1'.format(CURRENT_INFLUX)
+#    L2_CURRENT_INFLUX = "L2_Current_A" 
+#    L2_CURRENT_INFLUX_QUERY = 'SELECT * FROM {} ORDER BY time DESC LIMIT 1'.format(L2_CURRENT_INFLUX)
+#    L3_CURRENT_INFLUX = "L3_Current_A" 
+#    L3_CURRENT_INFLUX_QUERY = 'SELECT * FROM {} ORDER BY time DESC LIMIT 1'.format(L3_CURRENT_INFLUX)
     CHARGE_POWER_INFLUX = "ChargePower_W" 
-    CHARGE_POWER_INFLUX_QUERY = 'SELECT * FROM ChargePower_W ORDER BY time DESC LIMIT 1'
+    CHARGE_POWER_INFLUX_QUERY = 'SELECT * FROM {} ORDER BY time DESC LIMIT 1'.format(CHARGE_POWER_INFLUX)
     PV_POWER_INFLUX = "modbus.0.holdingRegisters.40067_PV_Leistung" 
-    PV_POWER_INFLUX_QUERY = 'SELECT * FROM "modbus.0.holdingRegisters.40067_PV_Leistung" ORDER BY time DESC LIMIT 1'
+    PV_POWER_INFLUX_QUERY = 'SELECT * FROM "{}" ORDER BY time DESC LIMIT 1'.format(PV_POWER_INFLUX)
     BATTERY_POWER_INFLUX = "modbus.0.holdingRegisters.40069_Batterie_Leistung"
-    BATTERY_POWER_INFLUX_QUERY = 'SELECT * FROM "modbus.0.holdingRegisters.40069_Batterie_Leistung" ORDER BY time DESC LIMIT 1'
+    BATTERY_POWER_INFLUX_QUERY = 'SELECT * FROM "{}" ORDER BY time DESC LIMIT 1'.format(BATTERY_POWER_INFLUX)
     HOME_POWER_INFLUX = "modbus.0.holdingRegisters.40071_Hausverbrauch_Leistung"
-    HOME_POWER_INFLUX_QUERY = 'SELECT * FROM "modbus.0.holdingRegisters.40071_Hausverbrauch_Leistung" ORDER BY time DESC LIMIT 1'
+    HOME_POWER_INFLUX_QUERY = 'SELECT * FROM "{}" ORDER BY time DESC LIMIT 1'.format(HOME_POWER_INFLUX)

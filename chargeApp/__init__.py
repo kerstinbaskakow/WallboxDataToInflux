@@ -4,6 +4,10 @@ Created on Thu Aug  8 12:19:33 2019
 
 @author: FBASKKE-ADM
 """
+
+import sys
+sys.path.append('../')  
+
 from influxdb import InfluxDBClient
 from pyModbusTCP.client import ModbusClient
 from chargeApp.config import Config

@@ -12,8 +12,8 @@ def readWallboxValuesMain():
     try:
         modbusclientWallbox.open()
         #print(modbusclientWallbox.write_single_register(258,4))
-        modbusclientWallbox.write_single_register(Config.WALLBOX_REGISTER["StdByControl"]
-                                                ,Config.WALLBOX_REG_STDBYCONTROL["disable"]) #set Stdby controll to "No Stdby"
+        modbusclientWallbox.write_single_register(Config.WALLBOX_REGISTER["STDBY_CONTROL"]
+                                                ,Config.WALLBOX_REG_STDBYCONTROL["DISABLE"]) #set Stdby controll to "No Stdby"
         for key,item in Config.MEASUREMENT_ITEMS_INPUTREG.items():
             try:
                 regs = modbusclientWallbox.read_input_registers(key)[0]
