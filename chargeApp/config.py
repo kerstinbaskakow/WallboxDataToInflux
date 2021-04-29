@@ -39,6 +39,22 @@ class Config:
                          262:'Failsafe_Current_A'
                          }
     
+    MODESELECTOR_VALUES={"IMMEDIATE_CHARGE":1,
+                         "SURPLUS_CHARGE":2,
+                         "ANYTHING_ELSE":3
+                         }
+    
+    WALLBOX_SETTINGS = {"MIN_CHARGE_CURRENT":6,
+                        "MAX_CHARGE_CURRENT":16,
+                        "FAIL_SAFE_CURRENT":6,
+                        "CURRENT_SCALE":10,
+            }
+    WALLBOX_REGISTER = {"StdByControl":258
+            }
+    WALLBOX_REG_STDBYCONTROL={"enable":0,
+                              "disable":4}
+    
+    
     CHARGE_POWER_INFLUX = "ChargePower_W" 
     CHARGE_POWER_INFLUX_QUERY = 'SELECT * FROM ChargePower_W ORDER BY time DESC LIMIT 1'
     PV_POWER_INFLUX = "modbus.0.holdingRegisters.40067_PV_Leistung" 

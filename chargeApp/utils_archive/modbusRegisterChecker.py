@@ -62,6 +62,8 @@ try:
         modbusclientWallbox.open()
         #modbusclientPV.open()
         
+        print("Layout =", modbusclientWallbox.read_input_registers(4))
+        
         #print(modbusclientWallbox.write_single_register(261,100))
         #print(modbusclientWallbox.write_single_register(258,4))
         
