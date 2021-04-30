@@ -7,10 +7,10 @@ Created on Sun Apr 25 15:02:12 2021
 """
 
 from chargeApp.config import Config
-from chargeApp.utils import queryDataFromInflux,writeDataToInflux
+from chargeApp.utils import queryDataFromInflux,writeDataToInflux,findActivePhases
 from chargeApp import modbusclientWallbox
 
-    
+ 
 def calcCurrentTargetValue(modeSelector):
     #1 means "SofortLaden" mit max. Leistung
     if modeSelector == Config.MODESELECTOR_VALUES["IMMEDIATE_CHARGE"]:
@@ -23,10 +23,11 @@ def calcCurrentTargetValue(modeSelector):
         homePower_W = queryDataFromInflux(Config.HOME_POWER_INFLUX_QUERY,Config.HOME_POWER_INFLUX)
         pvPower_W = queryDataFromInflux(Config.PV_POWER_INFLUX_QUERY,Config.PV_POWER_INFLUX)
         chargePower_W = queryDataFromInflux(Config.CHARGE_POWER_INFLUX_QUERY,Config.CHARGE_POWER_INFLUX)
+        actPhaseCorFaktor = findActivePhases()   
         if batteryPower_W < 0:
                 batteryPower_W = 0
         availChargePower_W = (pvPower_W -(homePower_W+batteryPower_W))+chargePower_W
-        availChargeCurrent_A = int(availChargePower_W/(230*3))
+        availChargeCurrent_A = int(availChargePower_W/(230*actPhaseCorFaktor))
         #6A is minimum charge current, 16 is max
         if availChargeCurrent_A<Config.WALLBOX_SETTINGS["MIN_CHARGE_CURRENT"]:
             maxCurTarVal = 0
@@ -39,6 +40,8 @@ def calcCurrentTargetValue(modeSelector):
         availChargePower_W = Config.WALLBOX_SETTINGS["FAIL_SAFE_CURRENT"]*3*230
         availChargeCurrent_A = Config.WALLBOX_SETTINGS["FAIL_SAFE_CURRENT"]
         maxCurTarVal = availChargeCurrent_A
+        
+    
     return int(maxCurTarVal),int(availChargePower_W),int(availChargeCurrent_A)
 
 def writeCalcCurToCharger(value):
@@ -60,7 +63,6 @@ def setWallboxChargeModeMain():
     mode = queryDataFromInflux('select value from button ORDER BY time desc limit 1',"button")
     writeDataToInflux(mode,"button")
     maxCurTarVal,availChargePower_W,availChargeCurrent_A = calcCurrentTargetValue(mode)
-
     writeDataToInflux(availChargePower_W,"calcAvailChargePower_W")
     writeDataToInflux(availChargeCurrent_A,"calcAvailChargeCurrent_A")
     #initialize modbus client
