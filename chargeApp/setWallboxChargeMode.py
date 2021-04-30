@@ -27,7 +27,10 @@ def calcCurrentTargetValue(modeSelector):
         if batteryPower_W < 0:
                 batteryPower_W = 0
         availChargePower_W = (pvPower_W -(homePower_W+batteryPower_W))+chargePower_W
-        availChargeCurrent_A = int(availChargePower_W/(230*actPhaseCorFaktor))
+        if actPhaseCorFaktor == 0:
+            availChargeCurrent_A = 0
+        else:
+            availChargeCurrent_A = int(availChargePower_W/(230*actPhaseCorFaktor))
         #6A is minimum charge current, 16 is max
         if availChargeCurrent_A<Config.WALLBOX_SETTINGS["MIN_CHARGE_CURRENT"]:
             maxCurTarVal = 0
@@ -40,8 +43,7 @@ def calcCurrentTargetValue(modeSelector):
         availChargePower_W = Config.WALLBOX_SETTINGS["FAIL_SAFE_CURRENT"]*3*230
         availChargeCurrent_A = Config.WALLBOX_SETTINGS["FAIL_SAFE_CURRENT"]
         maxCurTarVal = availChargeCurrent_A
-        
-    
+         
     return int(maxCurTarVal),int(availChargePower_W),int(availChargeCurrent_A)
 
 def writeCalcCurToCharger(value):
@@ -63,8 +65,14 @@ def setWallboxChargeModeMain():
     mode = queryDataFromInflux('select value from button ORDER BY time desc limit 1',"button")
     writeDataToInflux(mode,"button")
     maxCurTarVal,availChargePower_W,availChargeCurrent_A = calcCurrentTargetValue(mode)
+    maxAvailChargeCurrent_A = int(availChargePower_W/(230*3))
     writeDataToInflux(availChargePower_W,"calcAvailChargePower_W")
     writeDataToInflux(availChargeCurrent_A,"calcAvailChargeCurrent_A")
+    writeDataToInflux(maxAvailChargeCurrent_A,"calcMaxAvailChargeCurrent_A")
+    print(mode)
+    print(availChargeCurrent_A)
+    print(maxAvailChargeCurrent_A)
+    print(maxCurTarVal)
     #initialize modbus client
     #set charge current via modbus connection
     writeCalcCurToCharger(maxCurTarVal)
