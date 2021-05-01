@@ -7,15 +7,19 @@ Created on Sun Apr 25 15:02:12 2021
 """
 
 from chargeApp.config import Config
-from chargeApp.utils import queryDataFromInflux,writeDataToInflux,findActivePhases
-from chargeApp import modbusclientWallbox
+from chargeApp.utils import queryDataFromInflux,writeDataToInflux,findActivePhases,checkPluggingVehicle
+from chargeApp import modbusclientWallbox,logger
+import time
 
  
 def calcCurrentTargetValue(modeSelector):
+    #Detect possible phases depening on vehicle capability
+    actPhaseCorFaktor = findActivePhases() 
+    
     #1 means "SofortLaden" mit max. Leistung
     if modeSelector == Config.MODESELECTOR_VALUES["IMMEDIATE_CHARGE"]:
         availChargeCurrent_A = Config.WALLBOX_SETTINGS["MAX_CHARGE_CURRENT"]
-        availChargePower_W = availChargeCurrent_A*3*230
+        availChargePower_W = availChargeCurrent_A*actPhaseCorFaktor*230
         maxCurTarVal = availChargeCurrent_A
     #2 means pv surplus
     elif modeSelector == Config.MODESELECTOR_VALUES["SURPLUS_CHARGE"]:
@@ -23,10 +27,12 @@ def calcCurrentTargetValue(modeSelector):
         homePower_W = queryDataFromInflux(Config.HOME_POWER_INFLUX_QUERY,Config.HOME_POWER_INFLUX)
         pvPower_W = queryDataFromInflux(Config.PV_POWER_INFLUX_QUERY,Config.PV_POWER_INFLUX)
         chargePower_W = queryDataFromInflux(Config.CHARGE_POWER_INFLUX_QUERY,Config.CHARGE_POWER_INFLUX)
-        actPhaseCorFaktor = findActivePhases()   
+        
         if batteryPower_W < 0:
                 batteryPower_W = 0
+        #batteryPower_W = -4000
         availChargePower_W = (pvPower_W -(homePower_W+batteryPower_W))+chargePower_W
+        print("availChargePower_W before phase Correction: {}".format(availChargePower_W))
         if actPhaseCorFaktor == 0:
             availChargeCurrent_A = 0
         else:
@@ -47,12 +53,21 @@ def calcCurrentTargetValue(modeSelector):
     return int(maxCurTarVal),int(availChargePower_W),int(availChargeCurrent_A)
 
 def writeCalcCurToCharger(value):
+    justPlugged = checkPluggingVehicle()
+    print ("justPlugged ",justPlugged)
+    
+    if justPlugged==True:
+        value = 6
+
     try:
         modbusclientWallbox.open()
         #current has Faktor 10 at read/write to modbus interface
-        modbusclientWallbox.write_single_register(Config.WALLBOX_REGISTER["MAX_CUR_COMMAND"],value*Config.WALLBOX_SETTINGS["CURRENT_SCALE"])
+        modbusclientWallbox.write_single_register(Config.WALLBOX_REGISTER["MAX_CUR_COMMAND"],
+                                                  value*Config.WALLBOX_SETTINGS["CURRENT_SCALE"])
         modbusclientWallbox.close()
-
+        if justPlugged==True:
+            time.sleep(3)
+        print("currentValue written to wallbox: {}".format(value))
     except: 
         modbusclientWallbox.close()
 
@@ -69,10 +84,10 @@ def setWallboxChargeModeMain():
     writeDataToInflux(availChargePower_W,"calcAvailChargePower_W")
     writeDataToInflux(availChargeCurrent_A,"calcAvailChargeCurrent_A")
     writeDataToInflux(maxAvailChargeCurrent_A,"calcMaxAvailChargeCurrent_A")
-    print(mode)
-    print(availChargeCurrent_A)
-    print(maxAvailChargeCurrent_A)
-    print(maxCurTarVal)
+    logger.debug("mode: {}".format(mode))
+    logger.debug("availChargeCurrent_A: {}".format(availChargeCurrent_A))
+    logger.debug("maxAvailChargeCurrent_A: {}".format(maxAvailChargeCurrent_A))
+    logger.debug("maxCurTarVal: {}".format(maxCurTarVal))
     #initialize modbus client
     #set charge current via modbus connection
     writeCalcCurToCharger(maxCurTarVal)

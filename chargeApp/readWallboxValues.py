@@ -5,7 +5,7 @@ Created on Sun Apr 25 15:02:12 2021
 
 @author: kerstin
 """
-from chargeApp import influxclient,modbusclientWallbox
+from chargeApp import influxclient,modbusclientWallbox,logger
 from chargeApp.config import Config
 
 def readWallboxValuesMain():
@@ -17,20 +17,20 @@ def readWallboxValuesMain():
         for key,item in Config.MEASUREMENT_ITEMS_INPUTREG.items():
             try:
                 regs = modbusclientWallbox.read_input_registers(key)[0]
-                #print(item," ", regs)
+                logger.debug("{}: {}".format(item,regs))
                 body = [{
                     "measurement": item,
                     "fields":
                         {"value": regs}
                     }]
-                influxclient.write_points(body, database=Config.DATABASE, time_precision='s', batch_size=10000, protocol='json')
             except:
-                pass
-
+                logger.exception("Read from Modbux failed")
+            else:
+                influxclient.write_points(body, database=Config.DATABASE, time_precision='s', batch_size=10000, protocol='json')
         for key,item in Config.MEASUREMENT_ITEMS_READHOLDING.items():
             try:
                 regs = modbusclientWallbox.read_holding_registers(key)[0]
-                #print(item," ", regs)
+                logger.debug("{}: {}".format(item,regs))
                 body = [{
                     "measurement": item,
                     "fields":
