@@ -5,7 +5,15 @@ Created on Sun Oct 18 15:17:48 2020
 
 @author: kerstin
 """
+
+#import argparse
+#parser = argparse.ArgumentParser()
+#args, unknown = parser.parse_known_args()
+#parser.add_argument('--databasename', default="iobroker",help= 'Add here the bame for your database')
+#DATABASE = args.databasename
+
 class Config:
+
     DATABASE='iobroker'
     MOD_PORT=502
     MOD_HOST="192.168.2.137"
@@ -57,9 +65,8 @@ class Config:
                               "DISABLE":4}
     
     
-    
     CURRENT_INFLUX = "L{}_Current_A"
-    CHARGE_POWER_INFLUX = "ChargePower_W" 
+    CHARGE_POWER_INFLUX = MEASUREMENT_ITEMS_INPUTREG[14]
     CHARGE_POWER_INFLUX_QUERY = 'SELECT * FROM {} ORDER BY time DESC LIMIT 1'.format(CHARGE_POWER_INFLUX)
     PV_POWER_INFLUX = "modbus.0.holdingRegisters.40067_PV_Leistung" 
     PV_POWER_INFLUX_QUERY = 'SELECT * FROM "{}" ORDER BY time DESC LIMIT 1'.format(PV_POWER_INFLUX)
