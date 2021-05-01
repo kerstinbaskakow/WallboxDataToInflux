@@ -9,17 +9,20 @@ from chargeApp import logger
 from chargeApp.setWallboxChargeMode import setWallboxChargeModeMain
 from chargeApp.readWallboxValues import readWallboxValuesMain
 import schedule
+import time
 
 def runWallboxSchedule():
     logger.debug("--------------- read value -------------")
     readWallboxValuesMain()
+    time.sleep(1)
     logger.debug("------------------set value ------------")
     setWallboxChargeModeMain()
     
  
-schedule.every(5).seconds.do(runWallboxSchedule)
+schedule.every(10).seconds.do(runWallboxSchedule)
 
 
 if __name__ == "__main__":
     while True:
         schedule.run_pending()
+        time.sleep(1)
