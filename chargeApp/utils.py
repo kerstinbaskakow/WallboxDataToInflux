@@ -17,11 +17,11 @@ def writeDataToInflux(value,meas):
 def findActivePhases():
     listOfActivePhases=[]
     for phase in range(1,4,1):
-        CURRENT_INFLUX_QUERY = 'SELECT * FROM {} ORDER BY time DESC LIMIT 1'.format(Config.CURRENT_INFLUX.format(phase))
-        #Lx = 1 if 5 >0 else 0
-    
+        CURRENT_INFLUX_QUERY = 'SELECT * FROM {} ORDER BY time DESC LIMIT 1'.format(Config.CURRENT_INFLUX.format(phase))    
         Lx = 1 if queryDataFromInflux(CURRENT_INFLUX_QUERY,Config.CURRENT_INFLUX.format(phase)) >0 else 0
         listOfActivePhases.append(Lx)
     factor = sum(listOfActivePhases)
+    if factor < 1:
+        factor = 1
     return int(factor)
 

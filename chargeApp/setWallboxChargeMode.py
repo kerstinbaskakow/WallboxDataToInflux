@@ -12,10 +12,11 @@ from chargeApp import modbusclientWallbox
 
  
 def calcCurrentTargetValue(modeSelector):
+    actPhaseCorFaktor = findActivePhases() 
     #1 means "SofortLaden" mit max. Leistung
     if modeSelector == Config.MODESELECTOR_VALUES["IMMEDIATE_CHARGE"]:
         availChargeCurrent_A = Config.WALLBOX_SETTINGS["MAX_CHARGE_CURRENT"]
-        availChargePower_W = availChargeCurrent_A*3*230
+        availChargePower_W = availChargeCurrent_A*actPhaseCorFaktor*230
         maxCurTarVal = availChargeCurrent_A
     #2 means pv surplus
     elif modeSelector == Config.MODESELECTOR_VALUES["SURPLUS_CHARGE"]:
@@ -23,10 +24,12 @@ def calcCurrentTargetValue(modeSelector):
         homePower_W = queryDataFromInflux(Config.HOME_POWER_INFLUX_QUERY,Config.HOME_POWER_INFLUX)
         pvPower_W = queryDataFromInflux(Config.PV_POWER_INFLUX_QUERY,Config.PV_POWER_INFLUX)
         chargePower_W = queryDataFromInflux(Config.CHARGE_POWER_INFLUX_QUERY,Config.CHARGE_POWER_INFLUX)
-        actPhaseCorFaktor = findActivePhases()   
+          
         if batteryPower_W < 0:
                 batteryPower_W = 0
         availChargePower_W = (pvPower_W -(homePower_W+batteryPower_W))+chargePower_W
+        if availChargePower_W <0:
+            availChargePower_W=0
         if actPhaseCorFaktor == 0:
             availChargeCurrent_A = 0
         else:
@@ -40,7 +43,7 @@ def calcCurrentTargetValue(modeSelector):
             maxCurTarVal = Config.WALLBOX_SETTINGS["MAX_CHARGE_CURRENT"]
 
     else:
-        availChargePower_W = Config.WALLBOX_SETTINGS["FAIL_SAFE_CURRENT"]*3*230
+        availChargePower_W = Config.WALLBOX_SETTINGS["FAIL_SAFE_CURRENT"]*actPhaseCorFaktor*230
         availChargeCurrent_A = Config.WALLBOX_SETTINGS["FAIL_SAFE_CURRENT"]
         maxCurTarVal = availChargeCurrent_A
          
