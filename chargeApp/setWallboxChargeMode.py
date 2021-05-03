@@ -20,11 +20,17 @@ def calcCurrentTargetValue(modeSelector):
         maxCurTarVal = availChargeCurrent_A
     #2 means pv surplus
     elif modeSelector == Config.MODESELECTOR_VALUES["SURPLUS_CHARGE"]:
-        batteryPower_W = queryDataFromInflux(Config.BATTERY_POWER_INFLUX_QUERY,Config.BATTERY_POWER_INFLUX)
-        homePower_W = queryDataFromInflux(Config.HOME_POWER_INFLUX_QUERY,Config.HOME_POWER_INFLUX)
-        pvPower_W = queryDataFromInflux(Config.PV_POWER_INFLUX_QUERY,Config.PV_POWER_INFLUX)
-        chargePower_W = queryDataFromInflux(Config.CHARGE_POWER_INFLUX_QUERY,Config.CHARGE_POWER_INFLUX)
-          
+        try:
+            batteryPower_W = queryDataFromInflux(Config.BATTERY_POWER_INFLUX_QUERY,Config.BATTERY_POWER_INFLUX)
+            homePower_W = queryDataFromInflux(Config.HOME_POWER_INFLUX_QUERY,Config.HOME_POWER_INFLUX)
+            pvPower_W = queryDataFromInflux(Config.PV_POWER_INFLUX_QUERY,Config.PV_POWER_INFLUX)
+            chargePower_W = queryDataFromInflux(Config.CHARGE_POWER_INFLUX_QUERY,Config.CHARGE_POWER_INFLUX)
+        except:
+             batteryPower_W = 0
+             homePower_W = 0
+             pvPower_W = 0
+             chargePower_W = 0
+             
         if batteryPower_W < 0:
                 batteryPower_W = 0
         availChargePower_W = (pvPower_W -(homePower_W+batteryPower_W))+chargePower_W
@@ -58,6 +64,7 @@ def writeCalcCurToCharger(value):
 
     except: 
         modbusclientWallbox.close()
+        pass
 
 def setWallboxChargeModeMain():
     #check out the actual wished charge mode, and write it back to influx for 
@@ -65,17 +72,23 @@ def setWallboxChargeModeMain():
     # 1: instantly 
     # 2: by surplus
     # 3. no charging current
-    mode = queryDataFromInflux('select value from button ORDER BY time desc limit 1',"button")
-    writeDataToInflux(mode,"button")
+    try:
+        mode = queryDataFromInflux('select value from button ORDER BY time desc limit 1',"button")
+        writeDataToInflux(mode,"button")
+    except:
+        mode = 3
     maxCurTarVal,availChargePower_W,availChargeCurrent_A = calcCurrentTargetValue(mode)
     maxAvailChargeCurrent_A = int(availChargePower_W/(230*3))
-    writeDataToInflux(availChargePower_W,"calcAvailChargePower_W")
-    writeDataToInflux(availChargeCurrent_A,"calcAvailChargeCurrent_A")
-    writeDataToInflux(maxAvailChargeCurrent_A,"calcMaxAvailChargeCurrent_A")
-    print(mode)
-    print(availChargeCurrent_A)
-    print(maxAvailChargeCurrent_A)
-    print(maxCurTarVal)
+    try:
+        writeDataToInflux(availChargePower_W,"calcAvailChargePower_W")
+        writeDataToInflux(availChargeCurrent_A,"calcAvailChargeCurrent_A")
+        writeDataToInflux(maxAvailChargeCurrent_A,"calcMaxAvailChargeCurrent_A")
+    except:
+        pass
+#    print(mode)
+#    print(availChargeCurrent_A)
+#    print(maxAvailChargeCurrent_A)
+#    print(maxCurTarVal)
     #initialize modbus client
     #set charge current via modbus connection
     writeCalcCurToCharger(maxCurTarVal)

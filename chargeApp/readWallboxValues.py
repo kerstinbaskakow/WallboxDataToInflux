@@ -43,9 +43,9 @@ def readWallboxValuesMain():
 
 
 
-    except KeyboardInterrupt: 
+    except: 
         modbusclientWallbox.close()
-        print("interrupted by keyboard")  
+        pass  
 
 if __name__ == "__main__":
     readWallboxValuesMain()
