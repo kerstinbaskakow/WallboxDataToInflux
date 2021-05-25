@@ -17,9 +17,9 @@ influxclient = InfluxDBClient(host=Config.INFLUX_HOST, port=Config.INFLUX_PORT)
 influxclient.switch_database(Config.DATABASE)
 
 body = [{
-    "measurement": Config.CHARGE_POWER_INFLUX,
+    "measurement": "activePhasesDetected",
     "fields":
-        {"value": 5000}
+        {"value": 1}
     }]
 influxclient.write_points(body, database=Config.DATABASE, time_precision='s', batch_size=10000, protocol='json')
 #

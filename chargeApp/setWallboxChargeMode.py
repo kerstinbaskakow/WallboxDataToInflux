@@ -9,6 +9,7 @@ Created on Sun Apr 25 15:02:12 2021
 from chargeApp.config import Config
 from chargeApp.utils import queryDataFromInflux,writeDataToInflux,findActivePhases
 from chargeApp import modbusclientWallbox
+from numpy import mean
 
  
 def calcCurrentTargetValue(modeSelector):
@@ -21,10 +22,10 @@ def calcCurrentTargetValue(modeSelector):
     #2 means pv surplus
     elif modeSelector == Config.MODESELECTOR_VALUES["SURPLUS_CHARGE"]:
         try:
-            batteryPower_W = queryDataFromInflux(Config.BATTERY_POWER_INFLUX_QUERY,Config.BATTERY_POWER_INFLUX)
-            homePower_W = queryDataFromInflux(Config.HOME_POWER_INFLUX_QUERY,Config.HOME_POWER_INFLUX)
-            pvPower_W = queryDataFromInflux(Config.PV_POWER_INFLUX_QUERY,Config.PV_POWER_INFLUX)
-            chargePower_W = queryDataFromInflux(Config.CHARGE_POWER_INFLUX_QUERY,Config.CHARGE_POWER_INFLUX)
+            batteryPower_W = mean(queryDataFromInflux(Config.BATTERY_POWER_INFLUX_QUERY,Config.BATTERY_POWER_INFLUX))
+            homePower_W = mean(queryDataFromInflux(Config.HOME_POWER_INFLUX_QUERY,Config.HOME_POWER_INFLUX))
+            pvPower_W = mean(queryDataFromInflux(Config.PV_POWER_INFLUX_QUERY,Config.PV_POWER_INFLUX))
+            chargePower_W = mean(queryDataFromInflux(Config.CHARGE_POWER_INFLUX_QUERY,Config.CHARGE_POWER_INFLUX))
         except:
              batteryPower_W = 0
              homePower_W = 0
@@ -43,10 +44,37 @@ def calcCurrentTargetValue(modeSelector):
         #6A is minimum charge current, 16 is max
         if availChargeCurrent_A<Config.WALLBOX_SETTINGS["MIN_CHARGE_CURRENT"]:
             maxCurTarVal = 0
+#            maxCurTarVal = availChargeCurrent_A
+#            # TODO: 
+#            #remoteLock schreiben
+#            try:
+#                modbusclientWallbox.open()
+#                modbusclientWallbox.write_single_register(259,0)
+#                modbusclientWallbox.close()
+#
+#            except: 
+#                modbusclientWallbox.close()
+#                pass
         elif availChargeCurrent_A >= Config.WALLBOX_SETTINGS["MIN_CHARGE_CURRENT"] and availChargeCurrent_A <=Config.WALLBOX_SETTINGS["MAX_CHARGE_CURRENT"]:
             maxCurTarVal = availChargeCurrent_A
+            #try:
+#                modbusclientWallbox.open()
+#                modbusclientWallbox.write_single_register(259,1)
+#                modbusclientWallbox.close()
+#
+#            except: 
+#                modbusclientWallbox.close()
+#                pass
         else:
             maxCurTarVal = Config.WALLBOX_SETTINGS["MAX_CHARGE_CURRENT"]
+            #try:
+#                modbusclientWallbox.open()
+#                modbusclientWallbox.write_single_register(259,1)
+#                modbusclientWallbox.close()
+#
+#            except: 
+#                modbusclientWallbox.close()
+#                pass
 
     else:
         availChargePower_W = Config.WALLBOX_SETTINGS["FAIL_SAFE_CURRENT"]*actPhaseCorFaktor*230
