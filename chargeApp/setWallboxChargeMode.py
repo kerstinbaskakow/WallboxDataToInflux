@@ -22,10 +22,10 @@ def calcCurrentTargetValue(modeSelector):
     #2 means pv surplus
     elif modeSelector == Config.MODESELECTOR_VALUES["SURPLUS_CHARGE"]:
         try:
-            batteryPower_W = mean(queryDataFromInflux(Config.BATTERY_POWER_INFLUX_QUERY,Config.BATTERY_POWER_INFLUX))
-            homePower_W = mean(queryDataFromInflux(Config.HOME_POWER_INFLUX_QUERY,Config.HOME_POWER_INFLUX))
-            pvPower_W = mean(queryDataFromInflux(Config.PV_POWER_INFLUX_QUERY,Config.PV_POWER_INFLUX))
-            chargePower_W = mean(queryDataFromInflux(Config.CHARGE_POWER_INFLUX_QUERY,Config.CHARGE_POWER_INFLUX))
+            batteryPower_W = queryDataFromInflux(Config.BATTERY_POWER_INFLUX_QUERY,Config.BATTERY_POWER_INFLUX,6)
+            homePower_W = queryDataFromInflux(Config.HOME_POWER_INFLUX_QUERY,Config.HOME_POWER_INFLUX,6)
+            pvPower_W = queryDataFromInflux(Config.PV_POWER_INFLUX_QUERY,Config.PV_POWER_INFLUX,6)
+            chargePower_W = queryDataFromInflux(Config.CHARGE_POWER_INFLUX_QUERY,Config.CHARGE_POWER_INFLUX,6)
         except:
              batteryPower_W = 0
              homePower_W = 0
@@ -101,7 +101,7 @@ def setWallboxChargeModeMain():
     # 2: by surplus
     # 3. no charging current
     try:
-        mode = queryDataFromInflux('select value from button ORDER BY time desc limit 1',"button")
+        mode = queryDataFromInflux('select value from button ORDER BY time desc',"button",1)
         writeDataToInflux(mode,"button")
     except:
         mode = 3

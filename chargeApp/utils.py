@@ -1,10 +1,14 @@
 from chargeApp.config import Config
 from chargeApp import influxclient
 
-def queryDataFromInflux(query,meas):
-    rawVal = influxclient.query(query)
-    value = list(rawVal.get_points(measurement='{}'.format(meas)))[0]['value']
-    return value
+def queryDataFromInflux(query,meas,lim):
+    import numpy as np
+    limit = " LIMIT {}".format(lim)
+    rawVal = influxclient.query(query+limit)
+    valueList = list(rawVal.get_points(measurement='{}'.format(meas)))#[0]['value']
+    values = list(map(lambda x: x['value'],valueList))
+    #print(values)
+    return int(np.mean(values))
 
 
 
@@ -27,25 +31,24 @@ def cloudyDayDetectionBackup(chargingState,detected,listOfActivePhases):
             detected = 1   
             if factor < 1:
                 detected = 0
-    return int(factor)
+    return int(factor),int(detected)
 
 def findActivePhases():
     listOfActivePhases=[]
     for phase in range(1,4,1):
-        CURRENT_INFLUX_QUERY = 'SELECT * FROM {} ORDER BY time DESC LIMIT 1'.format(Config.CURRENT_INFLUX.format(phase))    
-        Lx = 1 if queryDataFromInflux(CURRENT_INFLUX_QUERY,Config.CURRENT_INFLUX.format(phase)) >0 else 0
+        CURRENT_INFLUX_QUERY = 'SELECT * FROM {} ORDER BY time DESC'.format(Config.CURRENT_INFLUX.format(phase))    
+        Lx = 1 if queryDataFromInflux(CURRENT_INFLUX_QUERY,Config.CURRENT_INFLUX.format(phase),1) >0 else 0
         listOfActivePhases.append(Lx)
     #factor = sum(listOfActivePhases)
     #see charging state from influx (not modbus, because than charging connection is safely established)
-    chargingState = queryDataFromInflux(Config.CHARGE_STATE_INFLUX_QUERY,Config.CHARGE_STATE_INFLUX)
-    detected = queryDataFromInflux(Config.ACTIVE_PHASES_DET_INFLUX_QUERY,Config.ACTIVE_PHASES_DET_INFLUX) 
+    chargingState = queryDataFromInflux(Config.CHARGE_STATE_INFLUX_QUERY,Config.CHARGE_STATE_INFLUX,1)
+    detected = queryDataFromInflux(Config.ACTIVE_PHASES_DET_INFLUX_QUERY,Config.ACTIVE_PHASES_DET_INFLUX,1) 
     #the phasedetection should only be active a plugging
     # in previous tests the phase detection was calculated each time this function runs
     # at cloudy days this led to toggling charge behaviour and vehicle error state
-    factor =  cloudyDayDetectionBackup(chargingState,detected,listOfActivePhases)         
+    factor,detected =  cloudyDayDetectionBackup(chargingState,detected,listOfActivePhases)         
     if factor < 1:
         factor = 1
-    writeDataToInflux(factor,"phaseDetectionFactor")       
-    writeDataToInflux(detected,Config.ACTIVE_PHASES_DET_INFLUX)       
+    writeDataToInflux(int(factor),"phaseDetectionFactor")       
+    writeDataToInflux(int(detected),Config.ACTIVE_PHASES_DET_INFLUX)       
     return int(factor)
-
